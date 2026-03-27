@@ -78,7 +78,7 @@ def init_db():
     # Seed bank config if not exists
     existing = c.execute("SELECT id FROM bank_config WHERE id=1").fetchone()
     if not existing:
-        c.execute("INSERT INTO bank_config (id, name, serial, total_balance, total_loan, loan_system) VALUES (1, 'ABC Bank', '7777', 0, 0, 1)")
+        c.execute("INSERT INTO bank_config (id, name, serial, total_balance, total_loan, loan_system) VALUES (1, 'GoldRiver Bank', '7777', 0, 0, 1)")
     conn.commit()
     conn.close()
 
@@ -244,7 +244,7 @@ def deposit(session):
     conn.execute("UPDATE bank_config SET total_balance = total_balance + ? WHERE id=1", (amount,))
     user = dict(conn.execute("SELECT name FROM users WHERE account_number=?", (acc,)).fetchone())
     conn.execute("INSERT INTO transactions (account_number, transaction_type, amount, from_name, to_name) VALUES (?,?,?,?,?)",
-                 (acc, 'Deposit', amount, user['name'], 'ABC Bank'))
+                 (acc, 'Deposit', amount, user['name'], 'GoldRiver Bank'))
     conn.commit()
     new_bal = conn.execute("SELECT balance FROM users WHERE account_number=?", (acc,)).fetchone()['balance']
     conn.close()
@@ -271,7 +271,7 @@ def withdraw(session):
     conn.execute("UPDATE users SET balance = balance - ? WHERE account_number=?", (amount, acc))
     conn.execute("UPDATE bank_config SET total_balance = total_balance - ? WHERE id=1", (amount,))
     conn.execute("INSERT INTO transactions (account_number, transaction_type, amount, from_name, to_name) VALUES (?,?,?,?,?)",
-                 (acc, 'Withdraw', amount, 'ABC Bank', user['name']))
+                 (acc, 'Withdraw', amount, 'GoldRiver Bank', user['name']))
     conn.commit()
     new_bal = conn.execute("SELECT balance FROM users WHERE account_number=?", (acc,)).fetchone()['balance']
     conn.close()
@@ -336,7 +336,7 @@ def loan(session):
     conn.execute("UPDATE users SET balance = balance + ?, loan_count = loan_count + 1 WHERE account_number=?", (amount, acc))
     conn.execute("UPDATE bank_config SET total_balance = total_balance - ?, total_loan = total_loan + ? WHERE id=1", (amount, amount))
     conn.execute("INSERT INTO transactions (account_number, transaction_type, amount, from_name, to_name) VALUES (?,?,?,?,?)",
-                 (acc, 'Loan', amount, 'ABC Bank', user['name']))
+                 (acc, 'Loan', amount, 'GoldRiver Bank', user['name']))
     conn.commit()
     new_bal = conn.execute("SELECT balance FROM users WHERE account_number=?", (acc,)).fetchone()['balance']
     conn.close()
