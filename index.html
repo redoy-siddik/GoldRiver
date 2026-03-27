@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ABC Bank — Modern Banking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1f2d45;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201,168,76,0.12);
+    --text: #e8eaf0;
+    --text-muted: #6b7a99;
+    --text-dim: #3d4f6e;
+    --green: #10b981;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --radius: 14px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+  /* NOISE TEXTURE */
+  body::before{
+    content:'';position:fixed;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='512' height='512' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none;z-index:0;opacity:.5
+  }
+
+  /* LANDING PAGE */
+  #landing{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;position:relative;z-index:1}
+  .landing-bg{position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%),radial-gradient(ellipse 50% 80% at 80% 100%, rgba(59,130,246,0.05) 0%, transparent 60%);pointer-events:none}
+  .brand{text-align:center;margin-bottom:60px}
+  .brand-icon{width:72px;height:72px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;box-shadow:0 0 40px rgba(201,168,76,0.3)}
+  .brand h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-0.02em;color:var(--text)}
+  .brand h1 span{color:var(--gold)}
+  .brand p{color:var(--text-muted);margin-top:10px;font-size:15px;letter-spacing:0.02em}
+  .portal-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:580px;width:100%}
+  @media(max-width:500px){.portal-grid{grid-template-columns:1fr}}
+  .portal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+  .portal-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold-dim),transparent);opacity:0;transition:.3s}
+  .portal-card:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 16px 48px rgba(201,168,76,0.15)}
+  .portal-card:hover::before{opacity:1}
+  .portal-card .icon{font-size:36px;margin-bottom:16px}
+  .portal-card h3{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:8px}
+  .portal-card p{color:var(--text-muted);font-size:13px;line-height:1.6}
+  .portal-badge{position:absolute;top:16px;right:16px;background:var(--gold-dim);color:var(--gold);font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;letter-spacing:0.08em;text-transform:uppercase}
+
+  /* AUTH SCREENS */
+  #auth-screen{display:none;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;position:relative;z-index:1}
+  .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;max-width:440px;width:100%;position:relative}
+  .auth-back{position:absolute;top:20px;left:20px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;transition:.2s;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:13px}
+  .auth-back:hover{color:var(--gold)}
+  .auth-header{text-align:center;margin-bottom:32px}
+  .auth-header h2{font-family:'Playfair Display',serif;font-size:1.8rem;margin-bottom:8px}
+  .auth-header p{color:var(--text-muted);font-size:14px}
+  .tab-row{display:flex;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:28px}
+  .tab-btn{flex:1;padding:9px;border:none;background:none;color:var(--text-muted);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:.2s}
+  .tab-btn.active{background:var(--gold);color:#000;font-weight:600}
+  .form-group{margin-bottom:18px}
+  .form-group label{display:block;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+  .form-group input, .form-group select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;transition:.2s;outline:none}
+  .form-group input:focus, .form-group select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.12)}
+  .form-group select option{background:var(--surface2)}
+  .btn-primary{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#000;border:none;border-radius:10px;padding:15px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:0.02em;transition:.3s;margin-top:4px}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,168,76,0.35)}
+  .btn-primary:active{transform:translateY(0)}
+  .error-msg{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;padding:12px 14px;font-size:13px;margin-bottom:16px;display:none}
+  .success-msg{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#6ee7b7;border-radius:8px;padding:12px 14px;font-size:13px;margin-bottom:16px;display:none}
+
+  /* DASHBOARD */
+  #dashboard{display:none;min-height:100vh;position:relative;z-index:1}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)}
+  .topbar-brand{display:flex;align-items:center;gap:12px}
+  .topbar-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .topbar-brand span{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold)}
+  .topbar-right{display:flex;align-items:center;gap:16px}
+  .user-chip{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:6px 14px 6px 6px}
+  .user-avatar{width:28px;height:28px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000}
+  .user-chip span{font-size:13px;font-weight:500}
+  .btn-logout{background:none;border:1px solid var(--border);color:var(--text-muted);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:.2s}
+  .btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+  /* SIDEBAR + CONTENT */
+  .dash-layout{display:flex;min-height:calc(100vh - 64px)}
+  .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:20px 12px;flex-shrink:0}
+  @media(max-width:768px){.sidebar{display:none}}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;color:var(--text-muted);font-size:14px;font-weight:500;transition:.2s;margin-bottom:4px}
+  .nav-item:hover{background:var(--surface2);color:var(--text)}
+  .nav-item.active{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,0.2)}
+  .nav-icon{font-size:18px;width:22px;text-align:center}
+  .nav-section{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);padding:14px 14px 6px;margin-top:8px}
+  .dash-content{flex:1;padding:28px;overflow-y:auto}
+
+  /* PANELS */
+  .panel{display:none}
+  .panel.active{display:block}
+  .panel-title{font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:6px}
+  .panel-sub{color:var(--text-muted);font-size:14px;margin-bottom:28px}
+
+  /* CARDS */
+  .balance-card{background:linear-gradient(135deg,#1a2a1a,#0f1f0f);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius);padding:28px;margin-bottom:24px;position:relative;overflow:hidden}
+  .balance-card::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(16,185,129,0.15),transparent);border-radius:50%}
+  .balance-label{font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(16,185,129,0.7);margin-bottom:10px}
+  .balance-amount{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,2.8rem);font-weight:700;color:#fff}
+  .balance-amount span{color:var(--green)}
+  .balance-meta{display:flex;gap:24px;margin-top:16px}
+  .balance-meta-item{font-size:12px;color:var(--text-muted)}
+  .balance-meta-item strong{display:block;color:var(--text);font-size:13px;margin-top:2px}
+
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+  .stat-label{font-size:12px;color:var(--text-muted);font-weight:500;margin-bottom:8px}
+  .stat-value{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700}
+  .stat-value.gold{color:var(--gold)}
+  .stat-value.green{color:var(--green)}
+  .stat-value.blue{color:var(--blue)}
+  .stat-value.red{color:var(--red)}
+
+  /* TRANSACTION FORM */
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;max-width:500px}
+  .form-card h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:20px}
+  .amount-input-wrap{position:relative}
+  .amount-prefix{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--gold);font-weight:700;font-size:18px}
+  .amount-input-wrap input{padding-left:32px!important;font-size:1.5rem!important;font-weight:700!important;font-family:'Playfair Display',serif!important}
+  .btn-action{width:100%;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.3s;letter-spacing:0.04em;margin-top:8px}
+  .btn-action:hover{background:var(--gold);color:#000}
+
+  /* TRANSACTIONS TABLE */
+  .tx-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .tx-header{padding:18px 22px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:space-between}
+  .tx-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border);font-size:13px;align-items:center;transition:.15s}
+  .tx-row:last-child{border-bottom:none}
+  .tx-row:hover{background:var(--surface2)}
+  .tx-row .col-head{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)}
+  .tx-type{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+  .tx-type.Deposit,.tx-type.Received{background:rgba(16,185,129,0.12);color:var(--green)}
+  .tx-type.Withdraw,.tx-type.Transfer{background:rgba(239,68,68,0.12);color:var(--red)}
+  .tx-type.Loan{background:rgba(59,130,246,0.12);color:var(--blue)}
+  .tx-amount{font-family:'Playfair Display',serif;font-weight:700}
+  .empty-state{text-align:center;padding:48px;color:var(--text-muted)}
+  .empty-state .icon{font-size:40px;margin-bottom:12px}
+
+  /* USER TABLE (admin) */
+  .user-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .user-table-header{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;gap:12px;padding:14px 22px;background:var(--surface2);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)}
+  .user-row{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;gap:12px;padding:15px 22px;border-top:1px solid var(--border);font-size:13px;align-items:center;transition:.15s}
+  .user-row:hover{background:var(--surface2)}
+  .user-name-cell{display:flex;align-items:center;gap:10px}
+  .mini-avatar{width:28px;height:28px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;flex-shrink:0}
+  .btn-del{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;transition:.2s}
+  .btn-del:hover{background:var(--red);color:#fff}
+  .account-type-badge{background:var(--surface2);border:1px solid var(--border);padding:3px 8px;border-radius:20px;font-size:11px;color:var(--text-muted)}
+
+  /* TOAST */
+  #toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+  .toast-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;min-width:280px;max-width:360px;display:flex;align-items:center;gap:12px;animation:slideIn .3s ease;box-shadow:var(--shadow)}
+  .toast-item.success{border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.08)}
+  .toast-item.error{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.08)}
+  .toast-icon{font-size:18px}
+  .toast-text{font-size:13px;line-height:1.4}
+  @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+
+  /* LOADING */
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9998;backdrop-filter:blur(3px);display:none}
+  .loading-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 40px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .loading-card p{color:var(--text-muted);font-size:14px}
+  .big-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite}
+
+  /* LOAN STATUS */
+  .loan-dots{display:flex;gap:8px;margin-top:8px}
+  .loan-dot{width:12px;height:12px;border-radius:50%;background:var(--border)}
+  .loan-dot.used{background:var(--red)}
+
+  /* MOBILE NAV */
+  .mobile-nav{display:none;background:var(--surface);border-top:1px solid var(--border);padding:8px;position:fixed;bottom:0;left:0;right:0;z-index:10;justify-content:space-around}
+  @media(max-width:768px){.mobile-nav{display:flex}.dash-content{padding:20px;padding-bottom:80px}}
+  .mob-nav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px;padding:8px;border-radius:10px;min-width:54px;transition:.2s}
+  .mob-nav-btn.active{color:var(--gold);background:var(--gold-dim)}
+  .mob-nav-btn span:first-child{font-size:20px}
+</style>
+</head>
+<body>
+
+<div class="landing-bg"></div>
+<div id="toast"></div>
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-card">
+    <div class="big-spinner"></div>
+    <p id="loadingText">Processing...</p>
+  </div>
+</div>
+
+<!-- LANDING -->
+<div id="landing">
+  <div class="brand">
+    <div class="brand-icon">🏛️</div>
+    <h1><span>ABC</span> Bank</h1>
+    <p>Secure • Modern • Reliable</p>
+  </div>
+  <div class="portal-grid">
+    <div class="portal-card" onclick="openPortal('user')">
+      <div class="portal-badge">Personal</div>
+      <div class="icon">👤</div>
+      <h3>User Portal</h3>
+      <p>Manage your account, transfers, loans and transaction history</p>
+    </div>
+    <div class="portal-card" onclick="openPortal('admin')">
+      <div class="portal-badge">Admin</div>
+      <div class="icon">🛡️</div>
+      <h3>Admin Portal</h3>
+      <p>Manage users, monitor bank health, and control system settings</p>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <button class="auth-back" onclick="goBack()">← Back</button>
+    <div class="auth-header">
+      <div id="authIcon" style="font-size:36px;margin-bottom:12px">👤</div>
+      <h2 id="authTitle">User Portal</h2>
+      <p id="authSub">Sign in or create an account</p>
+    </div>
+    <div class="tab-row">
+      <button class="tab-btn active" id="loginTab" onclick="switchTab('login')">Log In</button>
+      <button class="tab-btn" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div id="authError" class="error-msg"></div>
+    <div id="authSuccess" class="success-msg"></div>
+
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div id="userLoginFields">
+        <div class="form-group">
+          <label>Account Number</label>
+          <input type="text" id="loginAccNum" placeholder="Enter your account number"/>
+        </div>
+      </div>
+      <div id="adminLoginFields" style="display:none">
+        <div class="form-group">
+          <label>Admin Name</label>
+          <input type="text" id="loginAdminName" placeholder="Enter your admin name"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••"/>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Log In →</button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="signupForm" style="display:none">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="signupName" placeholder="John Doe"/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signupEmail" placeholder="john@example.com"/>
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" id="signupAddress" placeholder="123 Main St"/>
+      </div>
+      <div id="userSignupExtra">
+        <div class="form-group">
+          <label>Account Type</label>
+          <select id="signupAccountType">
+            <option value="">Select type</option>
+            <option>Savings</option>
+            <option>Current</option>
+            <option>Student</option>
+            <option>Business</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="Min 6 characters"/>
+      </div>
+      <button class="btn-primary" onclick="doSignup()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">🏛️</div>
+      <span>ABC Bank</span>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="topAvatar">U</div>
+        <span id="topName">User</span>
+      </div>
+      <button class="btn-logout" onclick="logout()">Log Out</button>
+    </div>
+  </div>
+
+  <div class="dash-layout">
+    <!-- SIDEBAR USER -->
+    <nav class="sidebar" id="sidebarUser">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" onclick="showPanel('overview')"><span class="nav-icon">🏠</span> Dashboard</div>
+      <div class="nav-section">Transactions</div>
+      <div class="nav-item" onclick="showPanel('deposit')"><span class="nav-icon">💰</span> Deposit</div>
+      <div class="nav-item" onclick="showPanel('withdraw')"><span class="nav-icon">💸</span> Withdraw</div>
+      <div class="nav-item" onclick="showPanel('transfer')"><span class="nav-icon">↔️</span> Transfer</div>
+      <div class="nav-item" onclick="showPanel('loan')"><span class="nav-icon">🏦</span> Loan</div>
+      <div class="nav-section">History</div>
+      <div class="nav-item" onclick="showPanel('history')"><span class="nav-icon">📋</span> Transactions</div>
+    </nav>
+
+    <!-- SIDEBAR ADMIN -->
+    <nav class="sidebar" id="sidebarAdmin" style="display:none">
+      <div class="nav-section">Bank</div>
+      <div class="nav-item active" onclick="showPanel('adminOverview')"><span class="nav-icon">📊</span> Overview</div>
+      <div class="nav-section">Management</div>
+      <div class="nav-item" onclick="showPanel('adminUsers')"><span class="nav-icon">👥</span> Users</div>
+      <div class="nav-item" onclick="showPanel('adminSettings')"><span class="nav-icon">⚙️</span> Settings</div>
+    </nav>
+
+    <main class="dash-content">
+      <!-- USER: OVERVIEW -->
+      <div class="panel active" id="panel-overview">
+        <div class="panel-title">Dashboard</div>
+        <div class="panel-sub">Welcome back! Here's your account overview.</div>
+        <div class="balance-card">
+          <div class="balance-label">Available Balance</div>
+          <div class="balance-amount">৳ <span id="balanceAmount">0.00</span></div>
+          <div class="balance-meta">
+            <div class="balance-meta-item">Account Number<strong id="metaAccNum">—</strong></div>
+            <div class="balance-meta-item">Account Type<strong id="metaAccType">—</strong></div>
+            <div class="balance-meta-item">Loans Taken<strong id="metaLoan">0 / 2</strong></div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card" style="cursor:pointer" onclick="showPanel('deposit')">
+            <div class="stat-label">Quick Deposit</div>
+            <div class="stat-value gold">+</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Click to deposit funds</div>
+          </div>
+          <div class="stat-card" style="cursor:pointer" onclick="showPanel('withdraw')">
+            <div class="stat-label">Quick Withdraw</div>
+            <div class="stat-value red">-</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Click to withdraw funds</div>
+          </div>
+          <div class="stat-card" style="cursor:pointer" onclick="showPanel('transfer')">
+            <div class="stat-label">Transfer Money</div>
+            <div class="stat-value blue">↔</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Send to another account</div>
+          </div>
+        </div>
+        <!-- Recent transactions -->
+        <div id="recentTxSection"></div>
+      </div>
+
+      <!-- USER: DEPOSIT -->
+      <div class="panel" id="panel-deposit">
+        <div class="panel-title">Deposit Funds</div>
+        <div class="panel-sub">Add money to your account</div>
+        <div class="form-card">
+          <h3>💰 Deposit Amount</h3>
+          <div class="form-group">
+            <label>Amount</label>
+            <div class="amount-input-wrap">
+              <span class="amount-prefix">৳</span>
+              <input type="number" id="depositAmount" placeholder="0.00" min="1"/>
+            </div>
+          </div>
+          <button class="btn-action" onclick="doDeposit()">Deposit →</button>
+        </div>
+      </div>
+
+      <!-- USER: WITHDRAW -->
+      <div class="panel" id="panel-withdraw">
+        <div class="panel-title">Withdraw Funds</div>
+        <div class="panel-sub">Withdraw money from your account</div>
+        <div class="form-card">
+          <h3>💸 Withdraw Amount</h3>
+          <div class="form-group">
+            <label>Amount</label>
+            <div class="amount-input-wrap">
+              <span class="amount-prefix">৳</span>
+              <input type="number" id="withdrawAmount" placeholder="0.00" min="1"/>
+            </div>
+          </div>
+          <button class="btn-action" onclick="doWithdraw()">Withdraw →</button>
+        </div>
+      </div>
+
+      <!-- USER: TRANSFER -->
+      <div class="panel" id="panel-transfer">
+        <div class="panel-title">Transfer Money</div>
+        <div class="panel-sub">Send funds to another account</div>
+        <div class="form-card">
+          <h3>↔️ Transfer Details</h3>
+          <div class="form-group">
+            <label>Recipient Account Number</label>
+            <input type="text" id="transferTo" placeholder="Enter account number"/>
+          </div>
+          <div class="form-group">
+            <label>Amount</label>
+            <div class="amount-input-wrap">
+              <span class="amount-prefix">৳</span>
+              <input type="number" id="transferAmount" placeholder="0.00" min="1"/>
+            </div>
+          </div>
+          <button class="btn-action" onclick="doTransfer()">Transfer →</button>
+        </div>
+      </div>
+
+      <!-- USER: LOAN -->
+      <div class="panel" id="panel-loan">
+        <div class="panel-title">Apply for Loan</div>
+        <div class="panel-sub">Maximum 2 active loans per account</div>
+        <div class="form-card">
+          <h3>🏦 Loan Application</h3>
+          <div class="form-group" style="margin-bottom:8px">
+            <label>Loans Used</label>
+            <div class="loan-dots" id="loanDots">
+              <div class="loan-dot"></div><div class="loan-dot"></div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:16px">
+            <label>Loan Amount</label>
+            <div class="amount-input-wrap">
+              <span class="amount-prefix">৳</span>
+              <input type="number" id="loanAmount" placeholder="0.00" min="1"/>
+            </div>
+          </div>
+          <button class="btn-action" onclick="doLoan()">Apply for Loan →</button>
+        </div>
+      </div>
+
+      <!-- USER: HISTORY -->
+      <div class="panel" id="panel-history">
+        <div class="panel-title">Transaction History</div>
+        <div class="panel-sub">All your recent transactions</div>
+        <div id="txTableWrap"></div>
+      </div>
+
+      <!-- ADMIN: OVERVIEW -->
+      <div class="panel" id="panel-adminOverview">
+        <div class="panel-title">Bank Overview</div>
+        <div class="panel-sub">Real-time bank statistics</div>
+        <div class="stats-grid" id="adminStatsGrid">
+          <div class="stat-card"><div class="stat-label">Total Balance</div><div class="stat-value gold" id="stat-total-balance">—</div></div>
+          <div class="stat-card"><div class="stat-label">Total Loans</div><div class="stat-value red" id="stat-total-loan">—</div></div>
+          <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value blue" id="stat-user-count">—</div></div>
+          <div class="stat-card"><div class="stat-label">Loan System</div><div class="stat-value green" id="stat-loan-system">—</div></div>
+        </div>
+      </div>
+
+      <!-- ADMIN: USERS -->
+      <div class="panel" id="panel-adminUsers">
+        <div class="panel-title">User Management</div>
+        <div class="panel-sub">View and manage all bank accounts</div>
+        <div id="adminUsersTable"></div>
+      </div>
+
+      <!-- ADMIN: SETTINGS -->
+      <div class="panel" id="panel-adminSettings">
+        <div class="panel-title">System Settings</div>
+        <div class="panel-sub">Configure bank-wide settings</div>
+        <div class="form-card">
+          <h3>🏦 Loan System</h3>
+          <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px">Enable or disable loan applications for all users.</p>
+          <div style="display:flex;gap:12px">
+            <button class="btn-action" style="flex:1" onclick="toggleLoan(true)">✅ Enable Loans</button>
+            <button class="btn-action" style="flex:1;background:rgba(239,68,68,0.1);color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="toggleLoan(false)">🚫 Disable Loans</button>
+          </div>
+          <div id="loanSystemStatus" style="margin-top:14px;font-size:13px;color:var(--text-muted)"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MOBILE NAV USER -->
+  <div class="mobile-nav" id="mobileNavUser">
+    <button class="mob-nav-btn active" onclick="showPanel('overview')"><span>🏠</span>Home</button>
+    <button class="mob-nav-btn" onclick="showPanel('deposit')"><span>💰</span>Deposit</button>
+    <button class="mob-nav-btn" onclick="showPanel('withdraw')"><span>💸</span>Withdraw</button>
+    <button class="mob-nav-btn" onclick="showPanel('transfer')"><span>↔️</span>Transfer</button>
+    <button class="mob-nav-btn" onclick="showPanel('history')"><span>📋</span>History</button>
+  </div>
+
+  <!-- MOBILE NAV ADMIN -->
+  <div class="mobile-nav" id="mobileNavAdmin" style="display:none">
+    <button class="mob-nav-btn active" onclick="showPanel('adminOverview')"><span>📊</span>Overview</button>
+    <button class="mob-nav-btn" onclick="showPanel('adminUsers')"><span>👥</span>Users</button>
+    <button class="mob-nav-btn" onclick="showPanel('adminSettings')"><span>⚙️</span>Settings</button>
+  </div>
+</div>
+
+<script>
+const API = '';
+let currentRole = null; // 'user' | 'admin'
+let authToken = null;
+let currentUser = null;
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function showLoading(msg='Processing...'){
+  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingOverlay').style.display = 'flex';
+}
+function hideLoading(){
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+function toast(msg, type='success'){
+  const t = document.getElementById('toast');
+  const el = document.createElement('div');
+  el.className = `toast-item ${type}`;
+  el.innerHTML = `<span class="toast-icon">${type==='success'?'✓':'✕'}</span><div class="toast-text">${msg}</div>`;
+  t.appendChild(el);
+  setTimeout(()=>el.style.opacity='0',3200);
+  setTimeout(()=>el.remove(),3500);
+}
+async function api(endpoint, method='GET', body=null){
+  const opts = {method, headers:{'Content-Type':'application/json'}};
+  if(authToken) opts.headers['Authorization'] = `Bearer ${authToken}`;
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(API+endpoint, opts);
+  return {ok: res.ok, status: res.status, data: await res.json()};
+}
+function showAuthMsg(msg, type='error'){
+  const el = document.getElementById(type==='error'?'authError':'authSuccess');
+  const other = document.getElementById(type==='error'?'authSuccess':'authError');
+  other.style.display = 'none';
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function clearAuthMsg(){
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+function fmt(n){return Number(n).toLocaleString('en-BD',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+// ─── LANDING ──────────────────────────────────────────────────────────────────
+function openPortal(role){
+  currentRole = role;
+  document.getElementById('landing').style.display = 'none';
+  const auth = document.getElementById('auth-screen');
+  auth.style.display = 'flex';
+  if(role==='admin'){
+    document.getElementById('authIcon').textContent = '🛡️';
+    document.getElementById('authTitle').textContent = 'Admin Portal';
+    document.getElementById('authSub').textContent = 'Sign in or create an admin account';
+    document.getElementById('userLoginFields').style.display = 'none';
+    document.getElementById('adminLoginFields').style.display = '';
+    document.getElementById('userSignupExtra').style.display = 'none';
+  } else {
+    document.getElementById('authIcon').textContent = '👤';
+    document.getElementById('authTitle').textContent = 'User Portal';
+    document.getElementById('authSub').textContent = 'Sign in or create an account';
+    document.getElementById('userLoginFields').style.display = '';
+    document.getElementById('adminLoginFields').style.display = 'none';
+    document.getElementById('userSignupExtra').style.display = '';
+  }
+  switchTab('login');
+}
+function goBack(){
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('landing').style.display = 'flex';
+  clearAuthMsg();
+}
+function switchTab(tab){
+  document.getElementById('loginTab').classList.toggle('active', tab==='login');
+  document.getElementById('signupTab').classList.toggle('active', tab==='signup');
+  document.getElementById('loginForm').style.display = tab==='login'?'':'none';
+  document.getElementById('signupForm').style.display = tab==='signup'?'':'none';
+  clearAuthMsg();
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+async function doLogin(){
+  clearAuthMsg();
+  showLoading('Signing you in...');
+  try {
+    let res;
+    if(currentRole==='user'){
+      const acc = document.getElementById('loginAccNum').value.trim();
+      const pw = document.getElementById('loginPassword').value;
+      if(!acc||!pw){hideLoading();showAuthMsg('Please fill all fields');return;}
+      res = await api('/api/user/login','POST',{account_number:acc,password:pw});
+    } else {
+      const name = document.getElementById('loginAdminName').value.trim();
+      const pw = document.getElementById('loginPassword').value;
+      if(!name||!pw){hideLoading();showAuthMsg('Please fill all fields');return;}
+      res = await api('/api/admin/login','POST',{name,password:pw});
+    }
+    hideLoading();
+    if(res.ok){
+      authToken = res.data.token;
+      enterDashboard(currentRole, res.data.name);
+    } else {
+      showAuthMsg(res.data.error||'Login failed');
+    }
+  } catch(e){hideLoading();showAuthMsg('Connection error');}
+}
+async function doSignup(){
+  clearAuthMsg();
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const address = document.getElementById('signupAddress').value.trim();
+  const pw = document.getElementById('signupPassword').value;
+  if(!name||!email||!address||!pw){showAuthMsg('Please fill all required fields');return;}
+  showLoading('Creating account...');
+  try {
+    let res;
+    if(currentRole==='user'){
+      const acc_type = document.getElementById('signupAccountType').value;
+      if(!acc_type){hideLoading();showAuthMsg('Please select account type');return;}
+      res = await api('/api/user/signup','POST',{name,email,address,account_type:acc_type,password:pw});
+    } else {
+      res = await api('/api/admin/signup','POST',{name,email,address,password:pw});
+    }
+    hideLoading();
+    if(res.ok){
+      if(currentRole==='user'){
+        showAuthMsg(`Account created! Your account number: ${res.data.account_number} — please save this.`,'success');
+        setTimeout(()=>{
+          authToken = res.data.token;
+          enterDashboard('user', res.data.name);
+        }, 2000);
+      } else {
+        authToken = res.data.token;
+        enterDashboard('admin', res.data.name);
+      }
+    } else {
+      showAuthMsg(res.data.error||'Signup failed');
+    }
+  } catch(e){hideLoading();showAuthMsg('Connection error');}
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function enterDashboard(role, name){
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('topName').textContent = name;
+  document.getElementById('topAvatar').textContent = name.charAt(0).toUpperCase();
+  if(role==='user'){
+    document.getElementById('sidebarUser').style.display = '';
+    document.getElementById('sidebarAdmin').style.display = 'none';
+    document.getElementById('mobileNavUser').style.display = 'flex';
+    document.getElementById('mobileNavAdmin').style.display = 'none';
+    showPanel('overview');
+    loadUserInfo();
+  } else {
+    document.getElementById('sidebarUser').style.display = 'none';
+    document.getElementById('sidebarAdmin').style.display = '';
+    document.getElementById('mobileNavUser').style.display = 'none';
+    document.getElementById('mobileNavAdmin').style.display = 'flex';
+    // hide user panels, show admin panels
+    showPanel('adminOverview');
+    loadAdminStats();
+  }
+}
+
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const p = document.getElementById('panel-'+name);
+  if(p) p.classList.add('active');
+
+  // Update nav
+  const allNavItems = document.querySelectorAll('.nav-item, .mob-nav-btn');
+  allNavItems.forEach(n=>n.classList.remove('active'));
+  const panelToNav = {
+    'overview':'Dashboard','deposit':'Deposit','withdraw':'Withdraw','transfer':'Transfer',
+    'loan':'Loan','history':'Transactions',
+    'adminOverview':'Overview','adminUsers':'Users','adminSettings':'Settings'
+  };
+  // just highlight by panel name match
+  allNavItems.forEach(n=>{
+    if(n.textContent.trim()===panelToNav[name]) n.classList.add('active');
+  });
+
+  // Lazy load content
+  if(name==='history') loadTransactions();
+  if(name==='adminUsers') loadAdminUsers();
+  if(name==='adminOverview') loadAdminStats();
+  if(name==='overview') loadUserInfo();
+  if(name==='loan') updateLoanDots();
+}
+
+async function loadUserInfo(){
+  try {
+    const res = await api('/api/user/me');
+    if(res.ok){
+      currentUser = res.data;
+      document.getElementById('balanceAmount').textContent = fmt(res.data.balance);
+      document.getElementById('metaAccNum').textContent = res.data.account_number;
+      document.getElementById('metaAccType').textContent = res.data.account_type;
+      document.getElementById('metaLoan').textContent = `${res.data.loan_count} / 2`;
+      loadRecentTransactions();
+    }
+  } catch(e){}
+}
+async function loadRecentTransactions(){
+  const res = await api('/api/user/transactions');
+  const wrap = document.getElementById('recentTxSection');
+  if(!res.ok||!res.data.length){wrap.innerHTML='';return;}
+  const recent = res.data.slice(0,5);
+  wrap.innerHTML = `<div class="tx-list">
+    <div class="tx-header"><span>Recent Transactions</span><span style="color:var(--text-muted);font-size:12px">${res.data.length} total</span></div>
+    <div class="tx-row">
+      <span class="col-head">Type</span><span class="col-head">Amount</span>
+      <span class="col-head">From</span><span class="col-head">Date</span>
+    </div>
+    ${recent.map(t=>`<div class="tx-row">
+      <span><span class="tx-type ${t.transaction_type}">${t.transaction_type}</span></span>
+      <span class="tx-amount">৳ ${fmt(t.amount)}</span>
+      <span style="color:var(--text-muted)">${t.from_name}</span>
+      <span style="color:var(--text-muted)">${t.timestamp.split('T')[0]||t.timestamp.split(' ')[0]}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+function updateLoanDots(){
+  if(!currentUser) return;
+  const dots = document.querySelectorAll('.loan-dot');
+  dots.forEach((d,i)=>d.classList.toggle('used', i < currentUser.loan_count));
+}
+
+async function doDeposit(){
+  const amount = parseFloat(document.getElementById('depositAmount').value);
+  if(!amount||amount<=0){toast('Enter a valid amount','error');return;}
+  showLoading('Processing deposit...');
+  const res = await api('/api/user/deposit','POST',{amount});
+  hideLoading();
+  if(res.ok){
+    toast(res.data.message);
+    document.getElementById('depositAmount').value = '';
+    loadUserInfo();
+  } else {
+    toast(res.data.error||'Deposit failed','error');
+  }
+}
+async function doWithdraw(){
+  const amount = parseFloat(document.getElementById('withdrawAmount').value);
+  if(!amount||amount<=0){toast('Enter a valid amount','error');return;}
+  showLoading('Processing withdrawal...');
+  const res = await api('/api/user/withdraw','POST',{amount});
+  hideLoading();
+  if(res.ok){
+    toast(res.data.message);
+    document.getElementById('withdrawAmount').value = '';
+    loadUserInfo();
+  } else {
+    toast(res.data.error||'Withdrawal failed','error');
+  }
+}
+async function doTransfer(){
+  const to = document.getElementById('transferTo').value.trim();
+  const amount = parseFloat(document.getElementById('transferAmount').value);
+  if(!to||!amount||amount<=0){toast('Fill in all transfer fields','error');return;}
+  showLoading('Transferring funds...');
+  const res = await api('/api/user/transfer','POST',{to_account:to,amount});
+  hideLoading();
+  if(res.ok){
+    toast(res.data.message);
+    document.getElementById('transferTo').value = '';
+    document.getElementById('transferAmount').value = '';
+    loadUserInfo();
+  } else {
+    toast(res.data.error||'Transfer failed','error');
+  }
+}
+async function doLoan(){
+  const amount = parseFloat(document.getElementById('loanAmount').value);
+  if(!amount||amount<=0){toast('Enter a valid amount','error');return;}
+  showLoading('Processing loan application...');
+  const res = await api('/api/user/loan','POST',{amount});
+  hideLoading();
+  if(res.ok){
+    toast(res.data.message);
+    document.getElementById('loanAmount').value = '';
+    loadUserInfo();
+    updateLoanDots();
+  } else {
+    toast(res.data.error||'Loan failed','error');
+  }
+}
+async function loadTransactions(){
+  const wrap = document.getElementById('txTableWrap');
+  wrap.innerHTML = `<div class="empty-state"><div class="spinner"></div></div>`;
+  const res = await api('/api/user/transactions');
+  if(!res.ok){wrap.innerHTML='<div class="empty-state">Failed to load</div>';return;}
+  if(!res.data.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="icon">📭</div><p>No transactions yet</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="tx-list">
+    <div class="tx-header"><span>All Transactions</span><span style="color:var(--text-muted);font-size:12px">${res.data.length} records</span></div>
+    <div class="tx-row">
+      <span class="col-head">Type</span><span class="col-head">Amount</span>
+      <span class="col-head">From → To</span><span class="col-head">Date</span>
+    </div>
+    ${res.data.map(t=>`<div class="tx-row">
+      <span><span class="tx-type ${t.transaction_type}">${t.transaction_type}</span></span>
+      <span class="tx-amount">৳ ${fmt(t.amount)}</span>
+      <span style="color:var(--text-muted);font-size:12px">${t.from_name} → ${t.to_name}</span>
+      <span style="color:var(--text-muted)">${(t.timestamp||'').split('T')[0]||(t.timestamp||'').split(' ')[0]}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ─── ADMIN ────────────────────────────────────────────────────────────────────
+async function loadAdminStats(){
+  const res = await api('/api/admin/bank_stats');
+  if(!res.ok) return;
+  const d = res.data;
+  document.getElementById('stat-total-balance').textContent = '৳ '+fmt(d.total_balance);
+  document.getElementById('stat-total-loan').textContent = '৳ '+fmt(d.total_loan);
+  document.getElementById('stat-user-count').textContent = d.user_count;
+  document.getElementById('stat-loan-system').textContent = d.loan_system ? 'Active' : 'Disabled';
+  document.getElementById('stat-loan-system').style.color = d.loan_system ? 'var(--green)' : 'var(--red)';
+}
+async function loadAdminUsers(){
+  const wrap = document.getElementById('adminUsersTable');
+  wrap.innerHTML = `<div class="empty-state"><div class="spinner"></div></div>`;
+  const res = await api('/api/admin/users');
+  if(!res.ok){wrap.innerHTML='<div class="empty-state">Failed to load</div>';return;}
+  if(!res.data.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="icon">👥</div><p>No users registered</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="user-table">
+    <div class="user-table-header">
+      <span>User</span><span>Account #</span><span>Type</span><span>Balance</span><span>Action</span>
+    </div>
+    ${res.data.map(u=>`<div class="user-row">
+      <div class="user-name-cell">
+        <div class="mini-avatar">${u.name.charAt(0).toUpperCase()}</div>
+        <div><div style="font-weight:500">${u.name}</div><div style="font-size:11px;color:var(--text-muted)">${u.email}</div></div>
+      </div>
+      <span style="font-family:'Playfair Display',serif;font-size:12px;color:var(--text-muted)">${u.account_number}</span>
+      <span><span class="account-type-badge">${u.account_type}</span></span>
+      <span style="font-weight:600;color:var(--green)">৳ ${fmt(u.balance)}</span>
+      <button class="btn-del" onclick="adminDeleteUser('${u.account_number}', '${u.name}')">Delete</button>
+    </div>`).join('')}
+  </div>`;
+}
+async function adminDeleteUser(acc, name){
+  if(!confirm(`Delete account for ${name} (${acc})? This cannot be undone.`)) return;
+  showLoading('Deleting account...');
+  const res = await api('/api/admin/delete_user','DELETE',{account_number:acc});
+  hideLoading();
+  if(res.ok){toast(res.data.message);loadAdminUsers();}
+  else toast(res.data.error||'Delete failed','error');
+}
+async function toggleLoan(enabled){
+  showLoading('Updating loan system...');
+  const res = await api('/api/admin/loan_system','POST',{enabled});
+  hideLoading();
+  if(res.ok){
+    toast(res.data.message);
+    document.getElementById('loanSystemStatus').textContent = `Loan system is now ${enabled?'enabled':'disabled'}.`;
+    loadAdminStats();
+  } else {
+    toast(res.data.error||'Failed','error');
+  }
+}
+
+async function logout(){
+  showLoading('Logging out...');
+  await api('/api/logout','POST');
+  hideLoading();
+  authToken = null; currentUser = null; currentRole = null;
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('landing').style.display = 'flex';
+  toast('Logged out successfully');
+}
+
+// Enter on inputs
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    const ls = document.getElementById('loginForm');
+    const ss = document.getElementById('signupForm');
+    if(ls && ls.style.display !== 'none') doLogin();
+    else if(ss && ss.style.display !== 'none') doSignup();
+  }
+});
+</script>
+</body>
+</html>
